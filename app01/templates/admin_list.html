@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container">
+    <!-- 搜索栏 + 新建按钮（仅样式，功能后续实现） -->
+    <div style="margin-bottom: 15px;">
+        <form method="get" class="form-inline">
+            <div class="form-group">
+                <input type="text" name="keyword" class="form-control"
+                       placeholder="关键字" value="{{ keyword }}">
+            </div>
+            <button type="submit" class="btn btn-primary">搜索</button>
+            <a href="#" class="btn btn-success pull-right">新建管理员</a>
+        </form>
+    </div>
+
+    <!-- 管理员列表 -->
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">管理员列表</h3>
+        </div>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>密码</th>
+                <th>重置密码</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for admin in admin_list %}
+            <tr>
+                <td>{{ admin.id }}</td>
+                <td>{{ admin.username }}</td>
+                <td>******</td>
+                <td><a href="#">重置密码</a></td>
+                <td>
+                    <a class="btn btn-primary btn-xs" href="#">编辑</a>
+                    <a class="btn btn-danger btn-xs" href="#">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center;color:#999;">暂无数据</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
