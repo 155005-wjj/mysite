@@ -1,0 +1,47 @@
+{% extends 'app01/layout.html' %}
+{% load hrms_tags %}
+
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-heading"><span class="h4">角色列表</span></div>
+    <div class="panel-body">
+        <a href="/role/add/" class="btn btn-success" style="margin-bottom:10px;">新建角色</a>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>角色名称</th>
+                <th>拥有权限</th>
+                <th>分配用户数</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for role in role_list %}
+            <tr>
+                <td>{{ role.id }}</td>
+                <td>{{ role.title }}</td>
+                <td>
+                    {% for perm in role.permissions.all %}
+                    <span class="label label-default">{{ perm.title }}</span>
+                    {% empty %}
+                    <span class="text-muted">暂无权限</span>
+                    {% endfor %}
+                </td>
+                <td><span class="badge">{{ role_user_counts|get_item:role.id|default:0 }}</span></td>
+                <td>
+                    <a href="/role/edit/{{ role.id }}/"
+                       class="btn btn-primary btn-sm btn-edit">编辑</a>
+                    <a href="/role/delete/{{ role.id }}/"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('确定删除角色「{{ role.title }}」吗？');">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">暂无数据</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

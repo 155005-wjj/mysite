@@ -1,0 +1,98 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-default">
+            <div class="panel-heading"><span class="h4">AI 招聘 JD 生成</span></div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label>岗位名称</label>
+                    <div class="input-group">
+                        <input type="text" id="jobName" class="form-control"
+                               placeholder="例如：Python 后端开发工程师 / 产品经理 / UI 设计师" maxlength="50">
+                        <span class="input-group-btn">
+                            <button type="button" id="btnGen" class="btn btn-primary">生成 JD</button>
+                        </span>
+                    </div>
+                    <div class="ai-example-tags">
+                        <span class="text-muted">示例：</span>
+                        <button type="button" class="btn btn-default btn-sm ai-example">Python 后端工程师</button>
+                        <button type="button" class="btn btn-default btn-sm ai-example">人事专员</button>
+                        <button type="button" class="btn btn-default btn-sm ai-example">前端开发工程师</button>
+                    </div>
+                    <span class="text-danger" id="jdError"></span>
+                </div>
+
+                <hr>
+                <!-- 结果区 -->
+                <div id="jdResult" style="white-space: pre-wrap; display: none;">
+                    <div class="panel panel-info">
+                        <div class="panel-heading"><strong>生成结果</strong></div>
+                        <div class="panel-body" id="jdContent"></div>
+                    </div>
+                </div>
+                <div id="jdLoading" class="text-muted" style="display: none;">
+                    正在生成招聘 JD，请稍候…
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    $(function () {
+        $("#btnGen").click(function () {
+            var jobName = $.trim($("#jobName").val());
+            $("#jdError").text("");
+            $("#jdResult").hide();
+
+            if (!jobName) {
+                $("#jdError").text("请输入岗位名称");
+                return;
+            }
+
+            var $btn = $(this);
+            $btn.prop("disabled", true);
+            $("#jdLoading").show();
+
+            $.ajax({
+                url: "/ai/jd/generate/",
+                type: "post",
+                data: {job_name: jobName},
+                dataType: "json",
+                success: function (res) {
+                    $("#jdLoading").hide();
+                    $btn.prop("disabled", false);
+                    if (res.status) {
+                        $("#jdContent").text(res.jd);
+                        $("#jdResult").show();
+                    } else {
+                        $("#jdError").text(res.msg);
+                    }
+                },
+                error: function () {
+                    $("#jdLoading").hide();
+                    $btn.prop("disabled", false);
+                    $("#jdError").text("网络异常，请稍后再试");
+                }
+            });
+        });
+
+        // 回车触发生成
+        $("#jobName").keydown(function (e) {
+            if (e.keyCode === 13) {
+                $("#btnGen").click();
+            }
+        });
+
+        // 示例岗位快捷填入
+        $(".ai-example").click(function () {
+            $("#jobName").val($(this).text());
+            $("#jdError").text("");
+        });
+    });
+</script>
+{% endblock %}

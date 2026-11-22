@@ -1,0 +1,153 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>企业员工管理系统</title>
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    {% block css %}{% endblock %}
+</head>
+<body>
+<!-- 黑色顶部导航栏 -->
+<nav class="navbar navbar-inverse navbar-static-top hrms-navbar">
+    <div class="container-fluid">
+        <ul class="nav navbar-nav">
+            <li {% if '/depart/' in request.path %}class="active"{% endif %}>
+                <a href="/depart/list/">首页</a>
+            </li>
+            <li {% if '/depart/' in request.path %}class="active"{% endif %}>
+                <a href="/depart/list/">部门管理</a>
+            </li>
+            <li {% if '/employee/' in request.path %}class="active"{% endif %}>
+                <a href="/employee/list/">员工管理</a>
+            </li>
+            <li {% if '/attendance/' in request.path %}class="active"{% endif %}>
+                <a href="/attendance/list/">考勤管理</a>
+            </li>
+            <li {% if '/salary/' in request.path %}class="active"{% endif %}>
+                <a href="/salary/list/">薪资管理</a>
+            </li>
+            <li {% if '/notice/' in request.path %}class="active"{% endif %}>
+                <a href="/notice/list/">公告管理</a>
+            </li>
+            <li {% if '/task/' in request.path %}class="active"{% endif %}>
+                <a href="/task/list/">任务管理</a>
+            </li>
+            <li {% if '/chart/' in request.path %}class="active"{% endif %}>
+                <a href="/chart/">数据统计</a>
+            </li>
+            <li {% if '/user_manage/' in request.path %}class="active"{% endif %}>
+                <a href="/user_manage/list/">用户管理</a>
+            </li>
+            <li {% if '/role/' in request.path %}class="active"{% endif %}>
+                <a href="/role/list/">角色管理</a>
+            </li>
+            <li class="dropdown {% if '/ai/' in request.path %}active{% endif %}">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    AI 助手 <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="/ai/chat/">智能对话</a></li>
+                    <li><a href="/ai/jd/">招聘 JD 生成</a></li>
+                    <li><a href="/ai/knowledge/">制度问答</a></li>
+                    <li><a href="/ai/review/">数据点评</a></li>
+                </ul>
+            </li>
+        </ul>
+        <!-- 右侧用户下拉 -->
+        <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    {{ request.session.user_name }} <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="/logout/">注销登录</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+{% if '/ai/' in request.path %}
+<!-- AI 功能标签栏（效果图顶部标签切换） -->
+<div class="ai-tabs">
+    <a href="/ai/chat/" class="ai-tab {% if '/ai/chat/' in request.path %}active{% endif %}">智能对话</a>
+    <a href="/ai/jd/" class="ai-tab {% if '/ai/jd/' in request.path %}active{% endif %}">招聘 JD 生成</a>
+    <a href="/ai/knowledge/" class="ai-tab {% if '/ai/knowledge/' in request.path %}active{% endif %}">制度知识库问答</a>
+    <a href="/ai/review/" class="ai-tab {% if '/ai/review/' in request.path %}active{% endif %}">数据智能点评</a>
+</div>
+{% endif %}
+
+<div class="container-fluid hrms-content">
+    {% if messages %}
+    <div class="hrms-messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:"info" }} alert-dismissible hrms-alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="关闭">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</div>
+
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-3.4.1/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/ai_float.js' %}"></script>
+
+<!-- AI 智能助手浮窗（全站可用） -->
+<div id="aiFloatWidget">
+    <!-- 悬浮触发按钮 -->
+    <button type="button" id="aiFloatBtn" class="ai-float-btn" title="AI 智能助手">
+        <span class="ai-float-btn-icon">AI</span>
+    </button>
+
+    <!-- 对话面板 -->
+    <div id="aiFloatPanel" class="ai-float-panel">
+        <div class="ai-float-header">
+            <span class="ai-float-title">AI 智能助手</span>
+            <span class="ai-float-actions">
+                <button type="button" id="aiFloatSettingBtn" class="ai-header-link" title="密钥设置">⚙ 密钥</button>
+                <button type="button" id="aiFloatClearBtn" class="ai-header-link" title="清空对话">清空</button>
+                <a href="/ai/chat/" class="ai-header-link" title="在独立页面打开">独立页面</a>
+                <button type="button" id="aiFloatCloseBtn" class="ai-icon-btn" title="收起">×</button>
+            </span>
+        </div>
+
+        <!-- 对话区 -->
+        <div id="aiFloatBody" class="ai-float-body">
+            <div class="ai-float-empty">你好，我是智能办公助手，有什么可以帮你？</div>
+        </div>
+
+        <!-- 密钥设置区（默认隐藏） -->
+        <div id="aiFloatSetting" class="ai-float-setting" style="display:none;">
+            <label class="ai-setting-label">硅基流动 API 密钥</label>
+            <input type="password" id="aiFloatKeyInput" class="form-control"
+                   placeholder="sk-...（填写后保存在本机会话）" maxlength="128">
+            <div class="ai-setting-tip">
+                未配置密钥时，将读取后端环境变量 LLM_API_KEY；密钥不会写入代码或数据库。
+            </div>
+            <div class="ai-setting-btns">
+                <button type="button" id="aiFloatKeySave" class="btn btn-primary btn-sm">保存密钥</button>
+                <button type="button" id="aiFloatKeyRemove" class="btn btn-default btn-sm">清除临时密钥</button>
+            </div>
+            <span class="text-danger" id="aiFloatKeyMsg"></span>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="ai-float-input-bar">
+            <textarea id="aiFloatInput" class="ai-float-input" rows="2"
+                      placeholder="输入问题，Enter 发送，Shift+Enter 换行" maxlength="500"></textarea>
+            <button type="button" id="aiFloatSend" class="ai-send-btn" title="发送">发送</button>
+        </div>
+        <div class="ai-float-footer-tip" id="aiFloatStatus"></div>
+    </div>
+</div>
+
+{% block js %}{% endblock %}
+</body>
+</html>

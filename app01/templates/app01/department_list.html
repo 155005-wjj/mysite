@@ -1,0 +1,69 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<!-- 批量导入部门 -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="h5">批量上传</span>
+        <span class="text-muted small">（Excel 第一列写部门名称，从第 2 行开始；已存在的自动跳过）</span>
+    </div>
+    <div class="panel-body">
+        <form method="post" enctype="multipart/form-data" action="/depart/multi/">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="file" name="exc" accept=".xlsx">
+                <input type="submit" value="上传" class="btn btn-info btn-sm">
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <span class="h4">部门列表</span>
+        <a href="/depart/add/" class="btn btn-success pull-right">新建部门</a>
+    </div>
+    <div class="panel-body">
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>名称</th>
+                <th>负责人</th>
+                <th>员工人数</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for depart in depart_list %}
+            <tr>
+                <td>{{ depart.id }}</td>
+                <td>{{ depart.title }}</td>
+                <td>
+                    {% if depart.leader %}
+                        {{ depart.leader.username }}
+                    {% else %}
+                        <span class="text-muted">未指派</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge">{{ depart.employee_count }}</span>
+                </td>
+                <td>
+                    <a href="/depart/edit/{{ depart.id }}/"
+                       class="btn btn-primary btn-sm btn-edit">编辑</a>
+                    <a href="/depart/delete/{{ depart.id }}/"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('确定删除部门「{{ depart.title }}」吗？');">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">暂无数据</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

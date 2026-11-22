@@ -1,0 +1,120 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="row">
+    <!-- 左侧：任务表单 -->
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading"><span class="h4">新建任务</span></div>
+            <div class="panel-body">
+                <form id="taskForm" novalidate>
+                    <div class="form-group">
+                        <label>级别</label>
+                        <select class="form-control" name="level">
+                            <option value="1">紧急</option>
+                            <option value="2" selected>普通</option>
+                            <option value="3">不急</option>
+                        </select>
+                        <span class="text-danger error-msg" data-field="level"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>标题</label>
+                        <input type="text" class="form-control" name="title">
+                        <span class="text-danger error-msg" data-field="title"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>详情</label>
+                        <textarea class="form-control" name="detail" rows="4"></textarea>
+                        <span class="text-danger error-msg" data-field="detail"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>负责人</label>
+                        <select class="form-control" name="leader">
+                            {% for user in leader_list %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="text-danger error-msg" data-field="leader"></span>
+                    </div>
+                    <button type="button" id="btnSubmit" class="btn btn-primary">提交</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：任务列表 -->
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading"><span class="h4">任务列表</span></div>
+            <div class="panel-body">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>标题</th>
+                        <th>级别</th>
+                        <th>详情</th>
+                        <th>负责人</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for task in queryset %}
+                    <tr>
+                        <td>{{ task.id }}</td>
+                        <td>{{ task.title }}</td>
+                        <td>{{ task.get_level_display }}</td>
+                        <td>{{ task.detail }}</td>
+                        <td>{{ task.leader.username }}</td>
+                        <td>
+                            <a href="/task/delete/{{ task.id }}/"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('确定删除吗？');">删除</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted">暂无数据</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- 分页 -->
+                <ul class="pagination">
+                    {{ page_string }}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    $(function () {
+        $("#btnSubmit").click(function () {
+            // 先清空旧错误提示
+            $(".error-msg").text("");
+
+            // AJAX异步提交，不刷新页面
+            $.ajax({
+                url: "/task/add/ajax/",
+                type: "post",
+                data: $("#taskForm").serialize(),
+                dataType: "json",
+                success: function (res) {
+                    if (res.status) {
+                        alert(res.msg);
+                        // 成功后刷新页面显示新任务
+                        location.reload();
+                    } else {
+                        // 校验错误回显到对应字段
+                        $.each(res.errors, function (field, msg) {
+                            $(".error-msg[data-field='" + field + "']").text(msg);
+                        });
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-heading"><span class="h4">数据统计</span></div>
+    <div class="panel-body">
+        <div class="row">
+            <!-- 部门人数饼图 -->
+            <div class="col-md-6">
+                <div id="departChart" style="width:100%;height:400px;"></div>
+            </div>
+            <!-- 薪资趋势折线图 -->
+            <div class="col-md-6">
+                <div id="salaryChart" style="width:100%;height:400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="/static/js/echarts.min.js"></script>
+<script>
+    $(function () {
+        // ===== 部门人数分布饼图 =====
+        var departChart = echarts.init(document.getElementById("departChart"));
+        $.ajax({
+            url: "/chart/depart/people/",
+            type: "get",
+            dataType: "json",
+            success: function (res) {
+                departChart.setOption({
+                    title: {text: "各部门人数分布", left: "center"},
+                    tooltip: {trigger: "item"},
+                    legend: {bottom: 0},
+                    series: [{
+                        type: "pie",
+                        radius: "60%",
+                        data: res.data
+                    }]
+                });
+            }
+        });
+
+        // ===== 各月薪资趋势折线图 =====
+        var salaryChart = echarts.init(document.getElementById("salaryChart"));
+        $.ajax({
+            url: "/chart/salary/trend/",
+            type: "get",
+            dataType: "json",
+            success: function (res) {
+                salaryChart.setOption({
+                    title: {text: "各月实发工资趋势", left: "center"},
+                    tooltip: {trigger: "axis"},
+                    xAxis: {type: "category", data: res.months},
+                    yAxis: {type: "value"},
+                    series: [{
+                        type: "line",
+                        data: res.totals,
+                        smooth: true,
+                        areaStyle: {}
+                    }]
+                });
+            }
+        });
+
+        // 窗口缩放时自适应
+        $(window).resize(function () {
+            departChart.resize();
+            salaryChart.resize();
+        });
+    });
+</script>
+{% endblock %}

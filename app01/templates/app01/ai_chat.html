@@ -1,0 +1,92 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="h4">AI 智能助手（多轮对话）</span>
+                <button type="button" id="btnClear" class="btn btn-default btn-sm pull-right">清空对话</button>
+            </div>
+            <div class="panel-body">
+                <!-- 对话气泡区 -->
+                <div id="chatBox" style="height: 380px; overflow-y: auto; border: 1px solid #eee; padding: 15px; background: #fafafa;">
+                    <div class="text-muted" id="chatEmpty">你好，我是智能办公助手，可以连续向我提问。</div>
+                </div>
+
+                <div class="input-group" style="margin-top: 15px;">
+                    <input type="text" id="chatInput" class="form-control"
+                           placeholder="输入问题，回车发送，支持连续追问" maxlength="500">
+                    <span class="input-group-btn">
+                        <button type="button" id="btnSend" class="btn btn-primary">发送</button>
+                    </span>
+                </div>
+                <span class="text-danger" id="chatError"></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    $(function () {
+        var $box = $("#chatBox");
+
+        function appendBubble(role, text) {
+            $("#chatEmpty").hide();
+            var cls = role === "user" ? "user" : "assistant";
+            var html = '<div class="chat-bubble ' + cls + ' ' +
+                (role === "user" ? "text-right" : "text-left") + '">' +
+                '<span>' + $("<div>").text(text).html() + '</span></div>';
+            $box.append(html);
+            $box.scrollTop($box[0].scrollHeight);
+        }
+
+        function send() {
+            var message = $.trim($("#chatInput").val());
+            $("#chatError").text("");
+            if (!message) return;
+
+            appendBubble("user", message);
+            $("#chatInput").val("");
+
+            var $btn = $("#btnSend");
+            $btn.prop("disabled", true);
+
+            $.ajax({
+                url: "/ai/chat/message/",
+                type: "post",
+                data: {message: message},
+                dataType: "json",
+                success: function (res) {
+                    $btn.prop("disabled", false);
+                    if (res.status) {
+                        appendBubble("assistant", res.answer);
+                    } else {
+                        $("#chatError").text(res.msg);
+                    }
+                },
+                error: function () {
+                    $btn.prop("disabled", false);
+                    $("#chatError").text("网络异常，请稍后再试");
+                }
+            });
+        }
+
+        $("#btnSend").click(send);
+        $("#chatInput").keydown(function (e) {
+            if (e.keyCode === 13) send();
+        });
+
+        $("#btnClear").click(function () {
+            $.post("/ai/chat/clear/", function (res) {
+                if (res.status) {
+                    $box.find(".chat-bubble").remove();
+                    $("#chatEmpty").show();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

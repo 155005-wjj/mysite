@@ -1,0 +1,94 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-default">
+            <div class="panel-heading"><span class="h4">制度知识库问答</span></div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label>请输入你的问题</label>
+                    <div class="input-group">
+                        <input type="text" id="question" class="form-control"
+                               placeholder="例如：迟到怎么算？报销需要什么材料？请假流程是什么？" maxlength="500">
+                        <span class="input-group-btn">
+                            <button type="button" id="btnAsk" class="btn btn-primary">提问</button>
+                        </span>
+                    </div>
+                    <span class="text-danger" id="kbError"></span>
+                </div>
+
+                <div id="kbLoading" class="text-muted" style="display: none;">正在思考，请稍候…</div>
+
+                <div id="kbResult" style="display: none; margin-top: 15px;">
+                    <div class="panel panel-success">
+                        <div class="panel-heading"><strong>助手回答</strong></div>
+                        <div class="panel-body">
+                            <div id="kbAnswer" style="white-space: pre-wrap;"></div>
+                            <hr>
+                            <div class="text-muted">
+                                参考制度：<span id="kbSource"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+                <div class="text-muted">
+                    常见问题示例：公司上下班时间是几点？&nbsp;&nbsp;出差住宿标准是多少？&nbsp;&nbsp;
+                    病假需要什么证明？&nbsp;&nbsp;工资几号发放？
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    $(function () {
+        function ask() {
+            var question = $.trim($("#question").val());
+            $("#kbError").text("");
+            $("#kbResult").hide();
+
+            if (!question) {
+                $("#kbError").text("请输入问题");
+                return;
+            }
+
+            var $btn = $("#btnAsk");
+            $btn.prop("disabled", true);
+            $("#kbLoading").show();
+
+            $.ajax({
+                url: "/ai/knowledge/ask/",
+                type: "post",
+                data: {question: question},
+                dataType: "json",
+                success: function (res) {
+                    $("#kbLoading").hide();
+                    $btn.prop("disabled", false);
+                    if (res.status) {
+                        $("#kbAnswer").text(res.answer);
+                        $("#kbSource").text((res.source || []).join("、") || "无");
+                        $("#kbResult").show();
+                    } else {
+                        $("#kbError").text(res.msg);
+                    }
+                },
+                error: function () {
+                    $("#kbLoading").hide();
+                    $btn.prop("disabled", false);
+                    $("#kbError").text("网络异常，请稍后再试");
+                }
+            });
+        }
+
+        $("#btnAsk").click(ask);
+        $("#question").keydown(function (e) {
+            if (e.keyCode === 13) ask();
+        });
+    });
+</script>
+{% endblock %}

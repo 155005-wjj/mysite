@@ -1,0 +1,71 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <form class="form-inline" method="get">
+            <div class="form-group">
+                <input type="month" class="form-control" name="month" value="{{ month }}">
+            </div>
+            <div class="form-group">
+                <select class="form-control" name="employee_id">
+                    <option value="">全部员工</option>
+                    {% for emp in employee_list %}
+                    <option value="{{ emp.id }}"
+                        {% if employee_id == emp.id %}selected{% endif %}>
+                        {{ emp.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">筛选</button>
+            <a href="/salary/list/" class="btn btn-default">重置</a>
+        </form>
+    </div>
+    <div class="panel-body">
+        <a href="/salary/add/" class="btn btn-success" style="margin-bottom:10px;">新增薪资</a>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>员工</th>
+                <th>月份</th>
+                <th>基本工资</th>
+                <th>奖金</th>
+                <th>扣款</th>
+                <th>实发工资</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for sal in salary_list %}
+            <tr>
+                <td>{{ sal.id }}</td>
+                <td>{{ sal.employee.name }}</td>
+                <td>{{ sal.month }}</td>
+                <td>{{ sal.base_salary }}</td>
+                <td>{{ sal.bonus }}</td>
+                <td>{{ sal.deduction }}</td>
+                <td><strong>{{ sal.total }}</strong></td>
+                <td>
+                    <a href="/salary/edit/{{ sal.id }}/"
+                       class="btn btn-primary btn-sm btn-edit">编辑</a>
+                    <a href="/salary/delete/{{ sal.id }}/"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('确定删除吗？');">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center text-muted">暂无数据</td></tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr class="active">
+                <td colspan="6" class="text-right"><strong>实发工资总额：</strong></td>
+                <td colspan="2"><strong class="text-danger">{{ total_sum }}</strong></td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <div class="panel panel-default">
+            <div class="panel-heading"><span class="h4">员工数据智能点评</span></div>
+            <div class="panel-body">
+                <form class="form-inline" id="reviewForm">
+                    <div class="form-group">
+                        <label>员工</label>
+                        <select class="form-control" id="employeeId">
+                            <option value="">请选择员工</option>
+                            {% for emp in employee_list %}
+                            <option value="{{ emp.id }}">{{ emp.name }}（{{ emp.depart.title }}）</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>月份</label>
+                        <select class="form-control" id="month">
+                            <option value="">请选择月份</option>
+                            {% for m in month_list %}
+                            <option value="{{ m }}">{{ m }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="button" id="btnReview" class="btn btn-primary">生成点评</button>
+                </form>
+                <span class="text-danger" id="rvError"></span>
+
+                <div id="rvLoading" class="text-muted" style="display: none; margin-top: 15px;">
+                    正在分析员工数据，请稍候…
+                </div>
+
+                <div id="rvResult" style="display: none; margin-top: 15px;">
+                    <div class="panel panel-info">
+                        <div class="panel-heading"><strong>AI 点评与建议</strong></div>
+                        <div class="panel-body">
+                            <div id="rvReview" style="white-space: pre-wrap;"></div>
+                            <hr>
+                            <div class="text-muted">
+                                <strong>依据数据：</strong>
+                                <pre id="rvData" style="white-space: pre-wrap;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    $(function () {
+        $("#btnReview").click(function () {
+            var employeeId = $("#employeeId").val();
+            var month = $.trim($("#month").val());
+            $("#rvError").text("");
+            $("#rvResult").hide();
+
+            if (!employeeId) {
+                $("#rvError").text("请选择员工");
+                return;
+            }
+            if (!month) {
+                $("#rvError").text("请选择月份");
+                return;
+            }
+
+            var $btn = $(this);
+            $btn.prop("disabled", true);
+            $("#rvLoading").show();
+
+            $.ajax({
+                url: "/ai/review/analyze/",
+                type: "post",
+                data: {employee_id: employeeId, month: month},
+                dataType: "json",
+                success: function (res) {
+                    $("#rvLoading").hide();
+                    $btn.prop("disabled", false);
+                    if (res.status) {
+                        $("#rvReview").text(res.review);
+                        $("#rvData").text(res.data_text);
+                        $("#rvResult").show();
+                    } else {
+                        $("#rvError").text(res.msg);
+                    }
+                },
+                error: function () {
+                    $("#rvLoading").hide();
+                    $btn.prop("disabled", false);
+                    $("#rvError").text("网络异常，请稍后再试");
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

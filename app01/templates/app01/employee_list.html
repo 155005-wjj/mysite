@@ -1,0 +1,90 @@
+{% extends 'app01/layout.html' %}
+
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <form class="form-inline" method="get">
+            <div class="form-group">
+                <input type="text" class="form-control" name="keyword"
+                       value="{{ keyword }}" placeholder="员工姓名">
+            </div>
+            <div class="form-group">
+                <select class="form-control" name="depart_id">
+                    <option value="">全部部门</option>
+                    {% for depart in depart_list %}
+                    <option value="{{ depart.id }}"
+                        {% if depart_id == depart.id %}selected{% endif %}>
+                        {{ depart.title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">搜索</button>
+            <a href="/employee/list/" class="btn btn-default">重置</a>
+        </form>
+    </div>
+    <div class="panel-body">
+        <a href="/employee/add/" class="btn btn-success" style="margin-bottom:10px;">新建员工</a>
+        <span class="text-muted" style="margin-left:10px;">共 {{ total_count }} 名员工</span>
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>头像</th>
+                <th>姓名</th>
+                <th>年龄</th>
+                <th>性别</th>
+                <th>余额</th>
+                <th>入职时间</th>
+                <th>手机号</th>
+                <th>部门</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for emp in page_obj %}
+            <tr>
+                <td>{{ emp.id }}</td>
+                <td>
+                    {% if emp.avatar %}
+                    <img src="{{ emp.avatar.url }}" style="width:40px;height:40px;border-radius:50%;">
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>{{ emp.name }}</td>
+                <td>{{ emp.age }}</td>
+                <td>{{ emp.get_gender_display }}</td>
+                <td>{{ emp.balance }}</td>
+                <td>{{ emp.entry_date }}</td>
+                <td>{{ emp.mobile }}</td>
+                <td>{{ emp.depart.title }}</td>
+                <td>
+                    <a href="/employee/edit/{{ emp.id }}/"
+                       class="btn btn-primary btn-sm btn-edit">编辑</a>
+                    <a href="/employee/delete/{{ emp.id }}/"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('确定删除该员工吗？');">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" class="text-center text-muted">暂无数据</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- 分页 -->
+        <nav class="text-center">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}&keyword={{ keyword }}&depart_id={{ depart_id }}">上一页</a></li>
+                {% endif %}
+                <li class="active"><a>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</a></li>
+                {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}&keyword={{ keyword }}&depart_id={{ depart_id }}">下一页</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}
